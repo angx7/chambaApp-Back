@@ -4,18 +4,18 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:ChambaApp-Back}",
+            "cwd": "${workspaceFolder:chambaApp-Back}",
             "name": "Debug Run",
-            "program": "${workspaceFolder:ChambaApp-Back}/.build/debug/Run",
+            "program": "${workspaceFolder:chambaApp-Back}/.build/debug/Run",
             "preLaunchTask": "swift: Build Debug Run"
         },
         {
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:ChambaApp-Back}",
+            "cwd": "${workspaceFolder:chambaApp-Back}",
             "name": "Release Run",
-            "program": "${workspaceFolder:ChambaApp-Back}/.build/release/Run",
+            "program": "${workspaceFolder:chambaApp-Back}/.build/release/Run",
             "preLaunchTask": "swift: Build Release Run"
         }
     ]
