@@ -61,6 +61,7 @@ func routes(_ app: Application) throws {
         }
     }
 
+<<<<<<< HEAD
     //obtener todos
     app.get("prestadores") { req async throws -> [Prestador] in
         let collection = req.mongoDB.client.db("ChambaApp").collection(
@@ -87,4 +88,32 @@ func routes(_ app: Application) throws {
         return prestador
     }
 
+=======
+    app.get("subservicios") { req async throws -> [Subservicio] in
+    // Definir categorías válidas
+    let categoriasValidas = ["Doméstico", "Empresarial", "Otros"]
+
+    // Obtener parámetro `categoria`
+    guard let categoria = req.query[String.self, at: "categoria"] else {
+        throw Abort(.badRequest, reason: "La categoría es requerida")
+    }
+
+    // Validar si está entre los permitidos
+    guard categoriasValidas.contains(categoria) else {
+        throw Abort(.badRequest, reason: "Categoría inválida")
+    }
+
+    // Buscar en la colección
+    let collection = req.mongoDB.client.db("ChambaApp").collection(
+        "subservicios", withType: Subservicio.self)
+
+    let filter: BSONDocument = ["categoria": .string(categoria)]
+
+    // Retornar subservicios filtrados
+    return try await collection.find(filter).toArray()
+>>>>>>> temp
 }
+}
+
+
+
