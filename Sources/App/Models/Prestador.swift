@@ -1,7 +1,7 @@
-import Vapor
 import MongoDBVapor
+import Vapor
 
-struct Prestador: Content {
+struct Prestador: Content, Codable {
     var id: BSONObjectID?
     var nombre: String
     var edad: Int
@@ -13,6 +13,12 @@ struct Prestador: Content {
     var ubicacion: String
     var calificacion: Double
     var reseñas: [Reseña]
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case nombre, edad, telefono, subservicio, fotoURL, descripcion, experiencia, ubicacion,
+            calificacion, reseñas
+    }
 }
 
 struct Reseña: Content {
@@ -21,4 +27,3 @@ struct Reseña: Content {
     var calificacion: Int
     var fecha: String
 }
-
