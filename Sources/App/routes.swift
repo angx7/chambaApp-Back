@@ -55,7 +55,7 @@ func routes(_ app: Application) throws {
         }
         // Verifica la contraseña (asumiendo que está almacenada en texto plano, pero deberías usar hash)
         if try Bcrypt.verify(login.contrasena, created: usuario.contrasena) {
-            return ["status": "ok"]
+            return ["status": "ok", "usuario": usuario.nombreCompleto]
         } else {
             throw Abort(.unauthorized, reason: "Contraseña incorrecta")
         }
