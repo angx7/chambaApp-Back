@@ -1,6 +1,6 @@
-import Crypto
 import MongoDBVapor
 import Vapor
+import Crypto
 
 func routes(_ app: Application) throws {
     app.get("usuarios") { req async throws -> [Usuario] in
@@ -18,7 +18,7 @@ func routes(_ app: Application) throws {
             !usuario.cp.isEmpty,
             !usuario.usuario.isEmpty,
             !usuario.contrasena.isEmpty
-        else {
+             else {
             throw Abort(.badRequest, reason: "Todos los campos son obligatorios")
         }
 
@@ -39,7 +39,7 @@ func routes(_ app: Application) throws {
         return usuario
     }
 
-    app.post("login") { req async throws -> [String: String] in
+    app.post("login") { req async throws -> String in
         struct LoginRequest: Content {
             let usuario: String
             let contrasena: String
@@ -55,13 +55,37 @@ func routes(_ app: Application) throws {
         }
         // Verifica la contraseña (asumiendo que está almacenada en texto plano, pero deberías usar hash)
         if try Bcrypt.verify(login.contrasena, created: usuario.contrasena) {
-            return ["status": "ok", "usuario": usuario.nombreCompleto]
+            return "Login exitoso"
         } else {
             throw Abort(.unauthorized, reason: "Contraseña incorrecta")
         }
     }
 
-<<<<<<< HEAD
+    app.get("subservicios") { req async throws -> [Subservicio] in
+    // Definir categorías válidas
+    let categoriasValidas = ["Domestico", "Empresarial", "Otros"]
+
+    // Obtener parámetro `categoria`
+    guard let categoria = req.query[String.self, at: "categoria"] else {
+        throw Abort(.badRequest, reason: "La categoría es requerida")
+    }
+
+    // Validar si está entre los permitidos
+    guard categoriasValidas.contains(categoria) else {
+        throw Abort(.badRequest, reason: "Categoría inválida")
+    }
+
+    // Buscar en la colección
+    let collection = req.mongoDB.client.db("ChambaApp").collection(
+        "subservicios", withType: Subservicio.self)
+
+    let filter: BSONDocument = ["categoria": .string(categoria)]
+
+    // Retornar subservicios filtrados
+    return try await collection.find(filter).toArray()
+}
+
+
     //obtener todos
     app.get("prestadores") { req async throws -> [Prestador] in
         let collection = req.mongoDB.client.db("ChambaApp").collection(
@@ -88,31 +112,6 @@ func routes(_ app: Application) throws {
         return prestador
     }
 
-=======
-    app.get("subservicios") { req async throws -> [Subservicio] in
-    // Definir categorías válidas
-    let categoriasValidas = ["Doméstico", "Empresarial", "Otros"]
-
-    // Obtener parámetro `categoria`
-    guard let categoria = req.query[String.self, at: "categoria"] else {
-        throw Abort(.badRequest, reason: "La categoría es requerida")
-    }
-
-    // Validar si está entre los permitidos
-    guard categoriasValidas.contains(categoria) else {
-        throw Abort(.badRequest, reason: "Categoría inválida")
-    }
-
-    // Buscar en la colección
-    let collection = req.mongoDB.client.db("ChambaApp").collection(
-        "subservicios", withType: Subservicio.self)
-
-    let filter: BSONDocument = ["categoria": .string(categoria)]
-
-    // Retornar subservicios filtrados
-    return try await collection.find(filter).toArray()
->>>>>>> temp
-}
 }
 
 
