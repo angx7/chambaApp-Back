@@ -1,6 +1,6 @@
+import Crypto
 import MongoDBVapor
 import Vapor
-import Crypto
 
 func routes(_ app: Application) throws {
     app.get("usuarios") { req async throws -> [Usuario] in
@@ -18,7 +18,7 @@ func routes(_ app: Application) throws {
             !usuario.cp.isEmpty,
             !usuario.usuario.isEmpty,
             !usuario.contrasena.isEmpty
-             else {
+        else {
             throw Abort(.badRequest, reason: "Todos los campos son obligatorios")
         }
 
@@ -62,29 +62,28 @@ func routes(_ app: Application) throws {
     }
 
     app.get("subservicios") { req async throws -> [Subservicio] in
-    // Definir categorías válidas
-    let categoriasValidas = ["Domestico", "Empresarial", "Otros"]
+        // Definir categorías válidas
+        let categoriasValidas = ["Domestico", "Empresarial", "Otros"]
 
-    // Obtener parámetro `categoria`
-    guard let categoria = req.query[String.self, at: "categoria"] else {
-        throw Abort(.badRequest, reason: "La categoría es requerida")
+        // Obtener parámetro `categoria`
+        guard let categoria = req.query[String.self, at: "categoria"] else {
+            throw Abort(.badRequest, reason: "La categoría es requerida")
+        }
+
+        // Validar si está entre los permitidos
+        guard categoriasValidas.contains(categoria) else {
+            throw Abort(.badRequest, reason: "Categoría inválida")
+        }
+
+        // Buscar en la colección
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "subservicios", withType: Subservicio.self)
+
+        let filter: BSONDocument = ["categoria": .string(categoria)]
+
+        // Retornar subservicios filtrados
+        return try await collection.find(filter).toArray()
     }
-
-    // Validar si está entre los permitidos
-    guard categoriasValidas.contains(categoria) else {
-        throw Abort(.badRequest, reason: "Categoría inválida")
-    }
-
-    // Buscar en la colección
-    let collection = req.mongoDB.client.db("ChambaApp").collection(
-        "subservicios", withType: Subservicio.self)
-
-    let filter: BSONDocument = ["categoria": .string(categoria)]
-
-    // Retornar subservicios filtrados
-    return try await collection.find(filter).toArray()
-}
-
 
     //obtener todos
     app.get("prestadores") { req async throws -> [Prestador] in
@@ -113,6 +112,3 @@ func routes(_ app: Application) throws {
     }
 
 }
-
-
-
