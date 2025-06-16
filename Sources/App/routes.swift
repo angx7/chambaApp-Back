@@ -61,43 +61,43 @@ func routes(_ app: Application) throws {
         }
     }
 
-   //obtener todos 
+    //obtener todos
     app.get("prestadores") { req async throws -> [Prestador] in
-    let collection = req.mongoDB.client.db("ChambaApp").collection("prestadores_detalle", withType: Prestador.self)
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "prestadores_detalle", withType: Prestador.self)
 
-    let prestadores = try await collection.find().toArray()
-    return prestadores
-}
-
-app.get("prestadores", ":id") { req async throws -> Prestador in
-    guard let idString = req.parameters.get("id"),
-          let objectId = try? BSONObjectID(idString) else {
-        throw Abort(.badRequest, reason: "ID inválido")
+        let prestadores = try await collection.find().toArray()
+        return prestadores
     }
 
-    let collection = req.mongoDB.client.db("ChambaApp").collection("prestadores_detalle", withType: Prestador.self)
+    app.get("prestadores", ":id") { req async throws -> Prestador in
+        guard let idString = req.parameters.get("id"),
+            let objectId = try? BSONObjectID(idString)
+        else {
+            throw Abort(.badRequest, reason: "ID inválido")
+        }
 
-    guard let prestador = try await collection.findOne(["_id": .objectID(objectId)]) else {
-        throw Abort(.notFound, reason: "Prestador no encontrado")
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "prestadores_detalle", withType: Prestador.self)
+
+        guard let prestador = try await collection.findOne(["_id": .objectID(objectId)]) else {
+            throw Abort(.notFound, reason: "Prestador no encontrado")
+        }
+
+        return prestador
     }
 
-    return prestador
-}
+    app.get("prestadores", "subservicio", ":subservicio") { req async throws -> [Prestador] in
+        guard let subservicio = req.parameters.get("subservicio") else {
+            throw Abort(.badRequest, reason: "Subservicio no especificado")
+        }
 
-app.get("prestadores", "subservicio", ":subservicio") { req async throws -> [Prestador] in
-    guard let subservicio = req.parameters.get("subservicio") else {
-        throw Abort(.badRequest, reason: "Subservicio no especificado")
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "prestadores_detalle", withType: Prestador.self)
+
+        let prestadores = try await collection.find(["subservicio": .string(subservicio)]).toArray()
+        return prestadores
+
     }
 
-    let collection = req.mongoDB.client.db("ChambaApp").collection("prestadores_detalle", withType: Prestador.self)
-
-    let prestadores = try await collection.find(["subservicio": .string(subservicio)]).toArray()
-    return prestadores
-
-
-
-
 }
-
-
-
