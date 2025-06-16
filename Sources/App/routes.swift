@@ -39,7 +39,7 @@ func routes(_ app: Application) throws {
         return usuario
     }
 
-    app.post("login") { req async throws -> String in
+    app.post("login") { req async throws -> [String: String] in
         struct LoginRequest: Content {
             let usuario: String
             let contrasena: String
@@ -55,7 +55,7 @@ func routes(_ app: Application) throws {
         }
         // Verifica la contraseña (asumiendo que está almacenada en texto plano, pero deberías usar hash)
         if try Bcrypt.verify(login.contrasena, created: usuario.contrasena) {
-            return "Login exitoso"
+            return ["status": "ok", "usuario": usuario.nombreCompleto]
         } else {
             throw Abort(.unauthorized, reason: "Contraseña incorrecta")
         }
