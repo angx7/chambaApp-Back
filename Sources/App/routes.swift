@@ -111,4 +111,17 @@ func routes(_ app: Application) throws {
         return prestador
     }
 
+    app.get("prestadores", "subservicio", ":subservicio") { req async throws -> [Prestador] in
+        guard let subservicio = req.parameters.get("subservicio") else {
+            throw Abort(.badRequest, reason: "Subservicio no especificado")
+        }
+
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "prestadores_detalle", withType: Prestador.self)
+
+        let prestadores = try await collection.find(["subservicio": .string(subservicio)]).toArray()
+        return prestadores
+
+    }
+
 }
