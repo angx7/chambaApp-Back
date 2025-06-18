@@ -1,18 +1,20 @@
-# Etapa 1: Compilación de Vapor
+# Etapa 1: Build
 FROM swift:5.9 as builder
 
 WORKDIR /app
 
-# Clona el repositorio directamente
-RUN git clone https://github.com/angx7/ChambaApp-Back.git .
+# 🧩 Agregar dependencias necesarias para compilar MongoDB Driver
+RUN apt-get update && \
+    apt-get install -y libssl-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
+COPY . .
 RUN swift build -c release
 
-# Etapa 2: Imagen de producción
+# Etapa 2: Producción
 FROM swift:5.9-slim
 
 WORKDIR /app
-
 COPY --from=builder /app/.build/release/ChambaApp-Back /app/
 COPY --from=builder /app/Public ./Public
 COPY --from=builder /app/Resources ./Resources
