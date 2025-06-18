@@ -22,3 +22,12 @@ struct Usuario: Content, Codable {
         case nombreCompleto, fechaNacimiento, domicilio, cp, usuario, contrasena
     }
 }
+
+struct UsuarioUpdate: Content {
+    var nombreCompleto: String
+    var fechaNacimiento: String
+    var domicilio: String
+    var cp: String
+    var usuario: String
+    var contrasena: String? // Opcional
+}

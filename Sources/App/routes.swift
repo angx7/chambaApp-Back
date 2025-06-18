@@ -58,22 +58,36 @@ func routes(_ app: Application) throws {
     }
 
     app.put("usuarios", ":id") { req async throws -> Usuario in
-        guard let idString = req.parameters.get("id"),
-              let objectId = try? BSONObjectID(idString)
-        else {
-            throw Abort(.badRequest, reason: "ID inválido")
-        }
+    guard let idString = req.parameters.get("id"),
+          let objectId = try? BSONObjectID(idString)
+    else {
+        throw Abort(.badRequest, reason: "ID inválido")
+    }
 
-        var usuario = try req.content.decode(Usuario.self)
-        usuario.id = objectId // Asigna el ID del usuario existente
+    let update = try req.content.decode(UsuarioUpdate.self)
+    let collection = req.mongoDB.client.db("ChambaApp").collection(
+        "usuarios", withType: Usuario.self)
 
-        usuario.contrasena = try Bcrypt.hash(usuario.contrasena)
+    // Obtén el usuario actual
+    guard var usuarioActual = try await collection.findOne(["_id": .objectID(objectId)]) else {
+        throw Abort(.notFound, reason: "Usuario no encontrado")
+    }
 
-        let collection = req.mongoDB.client.db("ChambaApp").collection(
-            "usuarios", withType: Usuario.self)
+    // Actualiza los campos permitidos
+    usuarioActual.nombreCompleto = update.nombreCompleto
+    usuarioActual.fechaNacimiento = update.fechaNacimiento
+    usuarioActual.domicilio = update.domicilio
+    usuarioActual.cp = update.cp
+    usuarioActual.usuario = update.usuario
 
-        try await collection.replaceOne(filter: ["_id": .objectID(objectId)], replacement: usuario)
-        return usuario
+    // Solo actualiza la contraseña si viene en el request
+    if let nuevaContrasena = update.contrasena, !nuevaContrasena.isEmpty {
+        usuarioActual.contrasena = try Bcrypt.hash(nuevaContrasena)
+    }
+
+    try await collection.replaceOne(filter: ["_id": .objectID(objectId)], replacement: usuarioActual)
+    usuarioActual.contrasena = ""
+    return usuarioActual
     }
 
     app.delete("usuarios", ":id") { req async throws -> [String: String] in
