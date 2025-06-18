@@ -29,5 +29,5 @@ struct UsuarioUpdate: Content {
     var domicilio: String
     var cp: String
     var usuario: String
-    var contrasena: String? // Opcional
+    var contrasena: String?  // Opcional
 }

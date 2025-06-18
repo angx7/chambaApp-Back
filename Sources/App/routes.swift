@@ -27,9 +27,14 @@ func routes(_ app: Application) throws {
         return try await collection.find().toArray()
     }
 
-    app.post("usuarios") { req async throws -> Usuario in
+    struct RegistroExitoso: Content {
+        let status: String
+        let id: String
+    }
+    app.post("usuarios") { req async throws -> RegistroExitoso in
         var usuario = try req.content.decode(Usuario.self)
-        // Verifica que todos los campos requeridos estén completos
+
+        // Validación de campos obligatorios
         guard !usuario.nombreCompleto.isEmpty,
             !usuario.fechaNacimiento.isEmpty,
             !usuario.domicilio.isEmpty,
@@ -43,18 +48,23 @@ func routes(_ app: Application) throws {
         let collection = req.mongoDB.client.db("ChambaApp").collection(
             "usuarios", withType: Usuario.self)
 
-        // Verifica si el usuario ya existe
+        // Verifica que el usuario no exista
         if try await collection.findOne(["usuario": .string(usuario.usuario)]) != nil {
             throw Abort(.conflict, reason: "El usuario ya existe")
         }
 
-        // Hashea la contraseña y el domicilio
+        // Hashea la contraseña
         usuario.contrasena = try Bcrypt.hash(usuario.contrasena)
 
-        // Inserta el nuevo usuario
-        try await collection.insertOne(usuario)
-        usuario.contrasena = ""
-        return usuario
+        // Inserta el usuario
+        guard let result = try await collection.insertOne(usuario),
+            case let .objectID(id) = result.insertedID
+        else {
+            throw Abort(.internalServerError, reason: "No se pudo obtener el ID del usuario")
+        }
+
+        // Devuelve el JSON limpio
+        return RegistroExitoso(status: "ok", id: id.hex)
     }
 
     app.put("usuarios", ":id") { req async throws -> Usuario in
@@ -108,26 +118,6 @@ func routes(_ app: Application) throws {
 
         return ["status": "ok"]
     }
-
-    // app.post("usuarios", "contrasena") { req async throws -> [String: String] in
-    // struct RecuperarRequest: Content {
-    //     let usuario: String
-    //     let nuevaContrasena: String
-    // }
-
-    // let data = try req.content.decode(RecuperarRequest.self)
-    // let collection = req.mongoDB.client.db("ChambaApp").collection(
-    //     "usuarios", withType: Usuario.self)
-
-    // guard var usuarioActual = try await collection.findOne(["usuario": .string(data.usuario)]) else {
-    //     throw Abort(.notFound, reason: "Usuario no encontrado")
-    // }
-
-    // usuarioActual.contrasena = try Bcrypt.hash(data.nuevaContrasena)
-    // try await collection.replaceOne(filter: ["_id": .objectID(usuarioActual.id!)], replacement: usuarioActual)
-
-    // return ["status": "ok"]
-    // }
 
     app.patch("usuarios", "contrasena") { req async throws -> [String: String] in
         struct RecuperarRequest: Content {
