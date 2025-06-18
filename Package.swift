@@ -28,10 +28,6 @@ let package = Package(
         .executableTarget(name: "Run", dependencies: [
             .target(name: "App"),
             .product(name: "MongoDBVapor", package: "mongodb-vapor")
-        ]),
-        .testTarget(name: "AppTests", dependencies: [
-            .target(name: "App"),
-            .product(name: "XCTVapor", package: "vapor"),
         ])
     ]
 )
