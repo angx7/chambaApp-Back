@@ -58,36 +58,37 @@ func routes(_ app: Application) throws {
     }
 
     app.put("usuarios", ":id") { req async throws -> Usuario in
-    guard let idString = req.parameters.get("id"),
-          let objectId = try? BSONObjectID(idString)
-    else {
-        throw Abort(.badRequest, reason: "ID inválido")
-    }
+        guard let idString = req.parameters.get("id"),
+            let objectId = try? BSONObjectID(idString)
+        else {
+            throw Abort(.badRequest, reason: "ID inválido")
+        }
 
-    let update = try req.content.decode(UsuarioUpdate.self)
-    let collection = req.mongoDB.client.db("ChambaApp").collection(
-        "usuarios", withType: Usuario.self)
+        let update = try req.content.decode(UsuarioUpdate.self)
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "usuarios", withType: Usuario.self)
 
-    // Obtén el usuario actual
-    guard var usuarioActual = try await collection.findOne(["_id": .objectID(objectId)]) else {
-        throw Abort(.notFound, reason: "Usuario no encontrado")
-    }
+        // Obtén el usuario actual
+        guard var usuarioActual = try await collection.findOne(["_id": .objectID(objectId)]) else {
+            throw Abort(.notFound, reason: "Usuario no encontrado")
+        }
 
-    // Actualiza los campos permitidos
-    usuarioActual.nombreCompleto = update.nombreCompleto
-    usuarioActual.fechaNacimiento = update.fechaNacimiento
-    usuarioActual.domicilio = update.domicilio
-    usuarioActual.cp = update.cp
-    usuarioActual.usuario = update.usuario
+        // Actualiza los campos permitidos
+        usuarioActual.nombreCompleto = update.nombreCompleto
+        usuarioActual.fechaNacimiento = update.fechaNacimiento
+        usuarioActual.domicilio = update.domicilio
+        usuarioActual.cp = update.cp
+        usuarioActual.usuario = update.usuario
 
-    // Solo actualiza la contraseña si viene en el request
-    if let nuevaContrasena = update.contrasena, !nuevaContrasena.isEmpty {
-        usuarioActual.contrasena = try Bcrypt.hash(nuevaContrasena)
-    }
+        // Solo actualiza la contraseña si viene en el request
+        if let nuevaContrasena = update.contrasena, !nuevaContrasena.isEmpty {
+            usuarioActual.contrasena = try Bcrypt.hash(nuevaContrasena)
+        }
 
-    try await collection.replaceOne(filter: ["_id": .objectID(objectId)], replacement: usuarioActual)
-    usuarioActual.contrasena = ""
-    return usuarioActual
+        try await collection.replaceOne(
+            filter: ["_id": .objectID(objectId)], replacement: usuarioActual)
+        usuarioActual.contrasena = ""
+        return usuarioActual
     }
 
     app.delete("usuarios", ":id") { req async throws -> [String: String] in
@@ -108,24 +109,50 @@ func routes(_ app: Application) throws {
         return ["status": "ok"]
     }
 
-    app.post("usuarios", "contrasena") { req async throws -> [String: String] in
-    struct RecuperarRequest: Content {
-        let usuario: String
-        let nuevaContrasena: String
-    }
+    // app.post("usuarios", "contrasena") { req async throws -> [String: String] in
+    // struct RecuperarRequest: Content {
+    //     let usuario: String
+    //     let nuevaContrasena: String
+    // }
 
-    let data = try req.content.decode(RecuperarRequest.self)
-    let collection = req.mongoDB.client.db("ChambaApp").collection(
-        "usuarios", withType: Usuario.self)
+    // let data = try req.content.decode(RecuperarRequest.self)
+    // let collection = req.mongoDB.client.db("ChambaApp").collection(
+    //     "usuarios", withType: Usuario.self)
 
-    guard var usuarioActual = try await collection.findOne(["usuario": .string(data.usuario)]) else {
-        throw Abort(.notFound, reason: "Usuario no encontrado")
-    }
+    // guard var usuarioActual = try await collection.findOne(["usuario": .string(data.usuario)]) else {
+    //     throw Abort(.notFound, reason: "Usuario no encontrado")
+    // }
 
-    usuarioActual.contrasena = try Bcrypt.hash(data.nuevaContrasena)
-    try await collection.replaceOne(filter: ["_id": .objectID(usuarioActual.id!)], replacement: usuarioActual)
+    // usuarioActual.contrasena = try Bcrypt.hash(data.nuevaContrasena)
+    // try await collection.replaceOne(filter: ["_id": .objectID(usuarioActual.id!)], replacement: usuarioActual)
 
-    return ["status": "ok"]
+    // return ["status": "ok"]
+    // }
+
+    app.patch("usuarios", "contrasena") { req async throws -> [String: String] in
+        struct RecuperarRequest: Content {
+            let usuario: String
+            let nuevaContrasena: String
+        }
+
+        let data = try req.content.decode(RecuperarRequest.self)
+
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "usuarios", withType: Usuario.self)
+
+        guard var usuarioActual = try await collection.findOne(["usuario": .string(data.usuario)])
+        else {
+            throw Abort(.notFound, reason: "Usuario no encontrado")
+        }
+
+        usuarioActual.contrasena = try Bcrypt.hash(data.nuevaContrasena)
+
+        try await collection.replaceOne(
+            filter: ["_id": .objectID(usuarioActual.id!)],
+            replacement: usuarioActual
+        )
+
+        return ["status": "ok"]
     }
 
     app.post("login") { req async throws -> [String: String] in
