@@ -77,6 +77,24 @@ func routes(_ app: Application) throws {
         return usuario
     }
 
+    app.delete("usuarios", ":id") { req async throws -> [String: String] in
+        guard let idString = req.parameters.get("id"),
+            let objectId = try? BSONObjectID(idString)
+        else {
+            throw Abort(.badRequest, reason: "ID inválido")
+        }
+
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "usuarios", withType: Usuario.self)
+
+        let result = try await collection.deleteOne(["_id": .objectID(objectId)])
+        guard let result = result, result.deletedCount > 0 else {
+            throw Abort(.notFound, reason: "Usuario no encontrado")
+        }
+
+        return ["status": "ok"]
+    }
+
     app.post("login") { req async throws -> [String: String] in
         struct LoginRequest: Content {
             let usuario: String
