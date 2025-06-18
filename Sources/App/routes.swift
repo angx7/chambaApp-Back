@@ -3,6 +3,24 @@ import MongoDBVapor
 import Vapor
 
 func routes(_ app: Application) throws {
+
+    app.get("usuarios", ":id") { req async throws -> Usuario in
+        guard let idString = req.parameters.get("id"),
+            let objectId = try? BSONObjectID(idString)
+        else {
+            throw Abort(.badRequest, reason: "ID inválido")
+        }
+
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "usuarios", withType: Usuario.self)
+
+        guard let usuario = try await collection.findOne(["_id": .objectID(objectId)]) else {
+            throw Abort(.notFound, reason: "Usuario no encontrado")
+        }
+
+        return usuario
+    }
+
     app.get("usuarios") { req async throws -> [Usuario] in
         let collection = req.mongoDB.client.db("ChambaApp").collection(
             "usuarios", withType: Usuario.self)
@@ -39,6 +57,26 @@ func routes(_ app: Application) throws {
         return usuario
     }
 
+    app.put("usuarios", ":id") { req async throws -> Usuario in
+        guard let idString = req.parameters.get("id"),
+              let objectId = try? BSONObjectID(idString)
+        else {
+            throw Abort(.badRequest, reason: "ID inválido")
+        }
+
+        var usuario = try req.content.decode(Usuario.self)
+        usuario.id = objectId // Asigna el ID del usuario existente
+
+        usuario.contrasena = try Bcrypt.hash(usuario.contrasena)
+        usuario.domicilio = try Bcrypt.hash(usuario.domicilio)
+
+        let collection = req.mongoDB.client.db("ChambaApp").collection(
+            "usuarios", withType: Usuario.self)
+
+        try await collection.replaceOne(filter: ["_id": .objectID(objectId)], replacement: usuario)
+        return usuario
+    }
+
     app.post("login") { req async throws -> [String: String] in
         struct LoginRequest: Content {
             let usuario: String
@@ -55,7 +93,7 @@ func routes(_ app: Application) throws {
         }
         // Verifica la contraseña (asumiendo que está almacenada en texto plano, pero deberías usar hash)
         if try Bcrypt.verify(login.contrasena, created: usuario.contrasena) {
-            return ["status": "ok", "usuario": usuario.nombreCompleto]
+            return ["status": "ok", "id": usuario.id?.hex ?? ""]
         } else {
             throw Abort(.unauthorized, reason: "Contraseña incorrecta")
         }
