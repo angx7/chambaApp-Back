@@ -50,10 +50,10 @@ func routes(_ app: Application) throws {
 
         // Hashea la contraseña y el domicilio
         usuario.contrasena = try Bcrypt.hash(usuario.contrasena)
-        usuario.domicilio = try Bcrypt.hash(usuario.domicilio)
 
         // Inserta el nuevo usuario
         try await collection.insertOne(usuario)
+        usuario.contrasena = ""
         return usuario
     }
 
@@ -68,7 +68,6 @@ func routes(_ app: Application) throws {
         usuario.id = objectId // Asigna el ID del usuario existente
 
         usuario.contrasena = try Bcrypt.hash(usuario.contrasena)
-        usuario.domicilio = try Bcrypt.hash(usuario.domicilio)
 
         let collection = req.mongoDB.client.db("ChambaApp").collection(
             "usuarios", withType: Usuario.self)
