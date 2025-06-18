@@ -7,4 +7,9 @@ struct Subservicio: Content, Codable {
     var descripcion: String
     var categoria: String
     var imagenURL: String
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case nombre, descripcion, categoria, imagenURL
+    }
 }
