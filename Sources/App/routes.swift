@@ -108,6 +108,26 @@ func routes(_ app: Application) throws {
         return ["status": "ok"]
     }
 
+    app.post("usuarios", "contrasena") { req async throws -> [String: String] in
+    struct RecuperarRequest: Content {
+        let usuario: String
+        let nuevaContrasena: String
+    }
+
+    let data = try req.content.decode(RecuperarRequest.self)
+    let collection = req.mongoDB.client.db("ChambaApp").collection(
+        "usuarios", withType: Usuario.self)
+
+    guard var usuarioActual = try await collection.findOne(["usuario": .string(data.usuario)]) else {
+        throw Abort(.notFound, reason: "Usuario no encontrado")
+    }
+
+    usuarioActual.contrasena = try Bcrypt.hash(data.nuevaContrasena)
+    try await collection.replaceOne(filter: ["_id": .objectID(usuarioActual.id!)], replacement: usuarioActual)
+
+    return ["status": "ok"]
+    }
+
     app.post("login") { req async throws -> [String: String] in
         struct LoginRequest: Content {
             let usuario: String
