@@ -15,9 +15,9 @@ RUN swift build -c release
 FROM swift:5.9-slim
 
 WORKDIR /app
-COPY --from=builder /app/.build/release/ChambaApp-Back /app/
+COPY --from=builder /app/.build/release/Run /app/
 COPY --from=builder /app/Public ./Public
 COPY --from=builder /app/Resources ./Resources
 
 EXPOSE 8080
-CMD ["./ChambaApp-Back"]
+CMD ["./Run"]
