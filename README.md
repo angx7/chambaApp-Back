@@ -1,56 +1,108 @@
-# mongodb-vapor-template
+# ChambaApp Backend
 
-This repository contains a template which can be used for generating new projects using MongoDB and Vapor via [MongoDBVapor](https://github.com/mongodb/mongodb-vapor) with Vapor's command line tool, [Vapor Toolbox](https://github.com/vapor/toolbox):
+**ChambaApp** es una API REST desarrollada con [Vapor](https://github.com/vapor/vapor) y conectada a una base de datos **MongoDB**. Sirve como backend para la aplicación móvil [ChambaApp-Front](https://github.com/angx7/chambaApp-Front), que conecta usuarios con prestadores de servicios como jardineros, niñeras, plomeros, entre otros.
+
+El backend ya se encuentra desplegado y funcionando en DigitalOcean:  
+📡 http://137.184.82.172
+
+---
+
+## 📌 Funcionalidades principales
+
+- Registro e inicio de sesión de usuarios
+- Recuperación de contraseña
+- Listado y filtrado de servicios y subservicios
+- Gestión de prestadores y reseñas
+- Autenticación segura y validación de campos
+
+---
+
+## 🗂 Estructura del proyecto
 
 ```
-vapor new MyProject --template https://github.com/mongodb/mongodb-vapor-template/
-```
-## Getting Started
-1. Install [Vapor Toolbox](https://github.com/vapor/toolbox). Installation instructions can be found [here for macOS](https://docs.vapor.codes/4.0/install/macos/#install-toolbox) and [here for Linux](https://docs.vapor.codes/4.0/install/linux/#install-toolbox).
-
-2. Initialize a new project from the command line, and move into the project directory:
-```
-vapor new MyProject --template https://github.com/mongodb/mongodb-vapor-template/
-cd MyProject
-```
-
-3. **If you're using Linux** The driver vendors and wraps the MongoDB C driver (`libmongoc`), which depends on a number of external C libraries when built in Linux environments. As a result, these libraries must be installed on your system in order to build the driver. To install those libraries, please follow the [instructions](http://mongoc.org/libmongoc/current/installing.html#prerequisites-for-libmongoc) from `libmongoc`'s documentation.
-
-4. Set up a MongoDB deployment to connect to. You can [install MongoDB](https://docs.mongodb.com/manual/installation/), and (in a new terminal window) start up a standalone server locally (this will run on the default host/port, `localhost:27017`):
-```
-mongod --dbpath /data/path/here
+ChambaApp-Back/
+├── Controllers/         # Controladores para cada endpoint
+├── Models/              # Modelos de datos: Usuario, Prestador, Reseña, etc.
+├── Config/              # Configuraciones de MongoDB y servicios
+├── Routes/              # Definición de rutas de la API
+├── main.swift           # Punto de entrada principal
+├── Package.swift        # Dependencias del proyecto
+└── Utilities/           # Utilidades generales (middleware, validaciones, etc.)
 ```
 
-Alternatively, you can use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) to set up a fully managed MongoDB deployment in the cloud.
+---
 
-5. If using Atlas, or a local host/port besides the default `localhost:27017`, set your MongoDB connection string via environment variable:
+## ⚙️ Tecnologías usadas
+
+- Vapor 4 (Framework backend en Swift)
+- MongoDB (Base de datos NoSQL)
+- SwiftNIO (para operaciones no bloqueantes)
+- DigitalOcean (Despliegue en producción)
+
+---
+
+## 🚀 Cómo levantar localmente
+
+1. Clona el repositorio:
+
+```bash
+git clone https://github.com/angx7/chambaApp-Back.git
+cd chambaApp-Back
 ```
-export MONGODB_URI='connection-string-here'
+
+2. Asegúrate de tener Swift 5.9+ y Vapor instalado. Si no lo tienes:
+
+```bash
+brew install vapor
 ```
 
-6. Load some sample data into the database via the MongoDB shell:
-```
-mongo $MONGODB_URI home --eval "db.kittens.insert([{name:\"roscoe\",color:\"orange\", createdAt: new Date()},{name:\"chester\",color:\"tan\", createdAt: new Date()}])"
-```
+3. Configura tu cadena de conexión a MongoDB en el archivo correspondiente del backend (`MongoDBConfig.swift`, `main.swift`, o donde se defina la conexión):
 
-If using Atlas, you could also do this via [Atlas Data Explorer](https://docs.atlas.mongodb.com/data-explorer/).
-
-7. Build and run the application (this might take a while on the first time):
-```
-swift build
-swift run
+```swift
+try app.mongoDB.configure(connectionString: "mongodb+srv://<usuario>:<contraseña>@cluster.mongodb.net/ChambaApp")
 ```
 
-8. If using Leaf, go to `http://localhost:8080` to see your app in action and load a list of kittens! Else, you can run `curl http://localhost:8080` to see the resulting JSON.
+4. Corre el servidor local:
 
-9. To add a new kitten: if using Leaf, use the form at `http://localhost:8080`. Else, you can
-add new data via `curl`: `curl -d "name=Bob&color=white" http://localhost:8080`. 
-## Resources:
-* [MongoDBVapor README](https://github.com/mongodb/mongodb-vapor#readme)
-* [MongoDBVapor API documentation](https://mongodb.github.io/mongodb-vapor/)
-* [MongoDB + Vapor example application](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample)
-* [Vapor documentation](https://docs.vapor.codes/4.0/)
-* [MongoDB server documentation](https://docs.mongodb.com/manual/)
+```bash
+vapor run serve
+```
 
-## Get in Touch
-Notice any issues with this template, or have ideas for how to make it more useful? Feel free to open a pull request or GitHub issue, or reach out to us on the [SWIFT Jira project](jira.mongodb.org/browse/SWIFT).
+---
+
+## 📡 Producción
+
+El servidor está desplegado en:
+
+```
+http://137.184.82.172
+```
+
+---
+
+## 🧪 Estado actual
+
+✅ Registro y login de usuarios  
+✅ Manejo de prestadores  
+✅ Consultas por subservicio  
+✅ Recuperación de contraseña  
+✅ Integración con frontend SwiftUI  
+❌ No incluye tests automatizados
+
+---
+
+## 👥 Autores
+
+Proyecto desarrollado por:
+
+- Angel Alejandro Becerra Rojas [@angx7](https://github.com/angx7)
+- Christian Axel Moreno Flores [@Kuripipeer](https://github.com/kuripipeer)
+- Abraham Rodríguez Contreras [@bardodepacotilla2912](https://github.com/bardodepacotilla2912)
+- Grecia Navarrete Mexicano [@GreciaNM](https://github.com/GreciaNM)
+- Ximena Gutiérrez Pérez [@Xitony0407](https://github.com/Xitony0407)
+
+---
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo los términos de la licencia MIT.
