@@ -18,7 +18,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: root
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 3600  # ⏱️ Timeout aumentado a 1 hora
+        timeout: 60m # ⏱️ Timeout aumentado a 1 hora
         script: |
           set -e  # 🔒 Detiene el script si hay un error
 
