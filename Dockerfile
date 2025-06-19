@@ -20,8 +20,6 @@ FROM swift:5.9-slim
 
 WORKDIR /app
 COPY --from=builder /app/.build/release/Run /app/
-COPY --from=builder /app/Public ./Public
-COPY --from=builder /app/Resources ./Resources
 
 EXPOSE 8080
 CMD ["./Run"]
