@@ -2,7 +2,7 @@ name: Actualizacion de ChambaApp-Back
 
 on:
   push:
-    branches: [ "master" ]  # o la rama que uses para prod
+    branches: [ "master" ]  # o la rama que uses para producción
 
 jobs:
   deploy:
@@ -18,9 +18,18 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: root
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 3600  # ⏱️ Timeout aumentado a 1 hora
         script: |
+          set -e  # 🔒 Detiene el script si hay un error
+
           cd /root/ChambaApp-Back
           git pull
+
+          echo "📦 Construyendo la imagen Docker..."
           docker build -t chamba-back .
+
+          echo "🧹 Deteniendo y eliminando contenedor anterior si existe..."
           docker rm -f chamba-api || true
+
+          echo "🚀 Iniciando nuevo contenedor..."
           docker run -d -p 80:8080 --name chamba-api chamba-back
