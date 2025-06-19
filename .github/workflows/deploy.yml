@@ -1,0 +1,26 @@
+name: Actualizacion de ChambaApp-Back
+
+on:
+  push:
+    branches: [ "master" ]  # o la rama que uses para prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: SSH into droplet and redeploy
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: root
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /root/ChambaApp-Back
+          git pull
+          docker build -t chamba-back .
+          docker rm -f chamba-api || true
+          docker run -d -p 80:8080 --name chamba-api chamba-back
